@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="Tasks.css" />
+    
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="logo.png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    
+    <title>Tsks</title>
+  </head>
+  <body>
+    <header>
+      <h1>TodoInput</h1>
+    </header>
+    
+    <div id="tasksAdd">
+        <input type="text" placeholder="New Todo" id="newToDo">
+        <label id="taskValidation" style="color: red; display: none;"></label>
+        <button id="addTaskBtn"> Add new Task</button>
+    </div>
+
+    <h1>TodoList</h1>
+    <div id="Sortingdiv">
+        <button>All</button>
+        <button>Done</button>
+        <button>Todo</button>
+    </div>
+    <div id="Tasks">
+
+    </div>
+    <div id="deleteBtnsDiv">
+        <button>Delete done tasks</button>
+        <button>Delete all tasks</button>
+    </div>
+  </body>
+  <script src="Tasks.js"></script>
+</html>
