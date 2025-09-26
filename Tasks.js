@@ -119,6 +119,7 @@ document.getElementById("todoTasks").addEventListener("click", () => {
 document.getElementById("deleteDone").addEventListener("click", () => {
   const tasksDiv = document.getElementById("Tasks");
   const taskElems = Array.from(tasksDiv.querySelectorAll(".Task"));
+  
   taskElems.forEach((taskElem) => {
     const checkbox = taskElem.querySelector('input[type="checkbox"]');
     if (checkbox && checkbox.checked) {
@@ -143,6 +144,19 @@ document.getElementById("deleteAll").addEventListener("click", () => {
   document.getElementById("Tasks").innerHTML = "";
 });
 
+//Delete icon 
+document.getElementById("Tasks").addEventListener("click", (event) => {
+  if (event.target.closest("button") && event.target.closest("button").querySelector("i.fa-trash")) {
+    const taskDiv = event.target.closest(".Task");
+    const taskName = taskDiv.querySelector("p").textContent;
 
+    // إزالة من DOM
+    taskDiv.remove();
+
+    // إزالة من SavedTasks و localStorage
+    SavedTasks = SavedTasks.filter(task => task.name !== taskName);
+    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
+  }
+});
 
 
