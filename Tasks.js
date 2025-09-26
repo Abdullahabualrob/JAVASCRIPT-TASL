@@ -64,7 +64,7 @@ document.getElementById("Tasks").addEventListener("change", (event) => {
   if (event.target.type === "checkbox") {
     const check = event.target;
     const taskDiv = check.closest(".Task");
-    if (check.checked) {
+    if (check.checked) { 
       taskDiv.classList.add("Done");
     } else {
       taskDiv.classList.remove("Done");
@@ -113,3 +113,36 @@ document.getElementById("todoTasks").addEventListener("click", () => {
     }
   });
 });
+
+//delete all task done\\\\\\\\\\\\\\\\\\\\\\\\
+// زر حذف المهام المنجزة فقط (يقرأ الحالة من DOM ويحذفها)
+document.getElementById("deleteDone").addEventListener("click", () => {
+  const tasksDiv = document.getElementById("Tasks");
+  const taskElems = Array.from(tasksDiv.querySelectorAll(".Task"));
+  taskElems.forEach((taskElem) => {
+    const checkbox = taskElem.querySelector('input[type="checkbox"]');
+    if (checkbox && checkbox.checked) {
+      const name = taskElem.querySelector("p").textContent;
+      const idx = SavedTasks.findIndex(t => t.name === name);
+      if (idx > -1) SavedTasks.splice(idx, 1);
+      taskElem.remove();
+    }
+  });
+  localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
+});
+
+
+
+
+
+
+// Delete all task\\\\\\\\\
+document.getElementById("deleteAll").addEventListener("click", () => {
+  SavedTasks = [];
+  localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
+  document.getElementById("Tasks").innerHTML = "";
+});
+
+
+
+
