@@ -149,11 +149,7 @@ document.getElementById("Tasks").addEventListener("click", (event) => {
   if (event.target.closest("button") && event.target.closest("button").querySelector("i.fa-trash")) {
     const taskDiv = event.target.closest(".Task");
     const taskName = taskDiv.querySelector("p").textContent;
-
-    // إزالة من DOM
     taskDiv.remove();
-
-    // إزالة من SavedTasks و localStorage
     SavedTasks = SavedTasks.filter(task => task.name !== taskName);
     localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
