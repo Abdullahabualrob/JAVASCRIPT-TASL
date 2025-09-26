@@ -154,5 +154,35 @@ document.getElementById("Tasks").addEventListener("click", (event) => {
     localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
 });
+//edit icon////////////////
+
+document.getElementById("Tasks").addEventListener("click", (event) => {
+  const editBtn = event.target.closest("button")?.querySelector("i.fa-pencil");
+  if (editBtn) {
+    const taskDiv = event.target.closest(".Task");
+    const taskNameElem = taskDiv.querySelector("p");
+    const oldName = taskNameElem.textContent;
+
+
+    const newName = prompt(`Edit the task: "${oldName}"`, oldName);
+
+
+    if (newName && newName.trim() !== "") {
+      const trimmedName = newName.trim();
+      taskNameElem.textContent = trimmedName; // تحديث DOM
+
+
+      SavedTasks = SavedTasks.map(task =>
+        task.name === oldName ? { ...task, name: trimmedName } : task
+      );
+      localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
+
+      alert(`Task updated to: "${trimmedName}"`);
+    } else {
+      alert("Edit canceled or invalid name.");
+    }
+  }
+});
+
 
 
