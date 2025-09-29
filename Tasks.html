@@ -43,6 +43,29 @@
         <button id="deleteDone">Delete done tasks</button>
         <button  id="deleteAll">Delete all tasks</button>
     </div>
+    <!-- ===== Edit Task Popup ===== -->
+<div id="editPopup" class="popup-overlay">
+  <div class="popup">
+    <h3>Edit Task</h3>
+    <input type="text" id="editInput" />
+    <div class="popup-buttons">
+      <button id="saveEdit" class="confirm">Save</button>
+      <button id="cancelEdit" class="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Confirm Delete Popup ===== -->
+<div id="confirmPopup" class="popup-overlay">
+  <div class="popup">
+    <h3>Confirm Delete</h3>
+    <p id="confirmMessage"></p>
+    <div class="popup-buttons">
+      <button id="confirmDelete" class="confirm">Yes</button>
+      <button id="cancelDelete" class="cancel">No</button>
+    </div>
+  </div>
+</div>
   </body>
   <script src="Tasks.js"></script>
 </html>
