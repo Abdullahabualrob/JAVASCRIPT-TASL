@@ -17,6 +17,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+document.getElementById("newToDo").addEventListener("input", () => {
+  const taskName = document.getElementById("newToDo").value.trim();
+  let taskValidation = document.getElementById("taskValidation");
+  taskValidation.textContent = "";
+  taskValidation.style.display = "none";
+  if (taskName === "") {
+    taskValidation.textContent = "Task name cannot be empty";
+    taskValidation.style.display = "block";
+    return;
+  } else if (/^\d/.test(taskName)) {
+    taskValidation.textContent = "Task name cannot start with a number";
+    taskValidation.style.display = "block";
+    return;
+  } else if (taskName.length < 5) {
+    taskValidation.textContent = "Task name cannot be less than 5 characters";
+    taskValidation.style.display = "block";
+    return;
+  } else {
+    taskValidation.style.display = "none";
+  }
+});
 ///////////////////////////// add task /////////////////////////////////////
 document.getElementById("addTaskBtn").addEventListener("click", () => {
   const input = document.getElementById("newToDo");
@@ -98,7 +119,6 @@ document.getElementById("todoTasks").addEventListener("click", () => {
 
 ///////////////////////////// Popups /////////////////////////////////////
 
-
 const editPopup = document.getElementById("editPopup");
 const editInput = document.getElementById("editInput");
 const saveEditBtn = document.getElementById("saveEdit");
@@ -129,8 +149,9 @@ saveEditBtn.addEventListener("click", () => {
   const newName = editInput.value.trim();
   if (newName !== "") {
     taskToEdit.elem.textContent = newName;
-   SavedTasks=SavedTasks.map((task)=>
-    task.name===taskToEdit.oldName? {...task,name: newName} :task);
+    SavedTasks = SavedTasks.map((task) =>
+      task.name === taskToEdit.oldName ? { ...task, name: newName } : task
+    );
 
     localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
@@ -158,13 +179,12 @@ document.getElementById("Tasks").addEventListener("click", (event) => {
   }
 });
 
-
 document.getElementById("deleteDone").addEventListener("click", () => {
   taskToDelete = "done";
-  confirmMessage.textContent = "Are you sure you want to delete all DONE tasks?";
+  confirmMessage.textContent =
+    "Are you sure you want to delete all DONE tasks?";
   confirmPopup.style.display = "flex";
 });
-
 
 document.getElementById("deleteAll").addEventListener("click", () => {
   taskToDelete = "all";
@@ -198,7 +218,6 @@ confirmDeleteBtn.addEventListener("click", () => {
   taskToDelete = null;
   confirmPopup.style.display = "none";
 });
-
 
 cancelDeleteBtn.addEventListener("click", () => {
   confirmPopup.style.display = "none";
