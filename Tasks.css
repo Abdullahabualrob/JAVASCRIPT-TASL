@@ -158,3 +158,28 @@ color: #ffff44;
 .popup .popup-buttons .cancel {
   background-color: #dc3545;
 }
+.no-tasks-message {
+  text-align: center;
+  padding: 20px;
+  margin: 15px auto;
+  max-width: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  background-color: #dc3545;
+color: white;
+  font-style: italic;
+  font-size: 16px;
+  transition: 0.3s ease-in-out;
+}
+
+.no-tasks-message:hover {
+  background: #f1f1f1;
+  border-color: #999;
+}
+
+.no-tasks-message i {
+  font-size: 24px;
+color:white;
+  margin-bottom: 8px;
+  display: block;
+}

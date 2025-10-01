@@ -23,6 +23,19 @@ async function loadTasks() {
   tasksContainer.innerHTML = "";
 
   const querySnapshot = await getDocs(collection(db, "tasks"));
+
+  if (querySnapshot.empty) {
+  tasksContainer.innerHTML = `
+    <div class="no-tasks-message">
+      <i class="fa fa-tasks" aria-hidden="true"></i>
+      <p>Please insert tasks</p>
+    </div>
+  `;
+
+  document.getElementById("deleteAll").style.display = "none";
+  document.getElementById("deleteDone").style.display = "none";
+  return;
+}
   querySnapshot.forEach((docItem) => {
     const task = docItem.data();
     tasksContainer.innerHTML += `
@@ -36,6 +49,9 @@ async function loadTasks() {
       </div>
     `;
   });
+
+  document.getElementById("deleteAll").style.display = "inline-block";
+  document.getElementById("deleteDone").style.display = "inline-block";
 }
 
 document.addEventListener("DOMContentLoaded", loadTasks);
@@ -62,7 +78,6 @@ document.getElementById("addTaskBtn").addEventListener("click", async () => {
     taskValidation.style.display = "block";
     return;
   }
-
   const docRef = await addDoc(collection(db, "tasks"), { name: taskName, done: false });
   console.log("Task added with ID:", docRef.id);
   input.value = "";
@@ -76,10 +91,8 @@ document.getElementById("Tasks").addEventListener("change", async (event) => {
     const taskDiv = check.closest(".Task");
     const taskId = taskDiv.getAttribute("data-id");
 
-    // تحديث Firestore
     await updateDoc(doc(db, "tasks", taskId), { done: check.checked });
 
-    // تعديل الـ UI
     if (check.checked) {
       taskDiv.classList.add("Done");
     } else {
@@ -87,7 +100,6 @@ document.getElementById("Tasks").addEventListener("change", async (event) => {
     }
   }
 });
-
 // ========================= Edit Task =========================
 const editPopup = document.getElementById("editPopup");
 const editInput = document.getElementById("editInput");
@@ -167,10 +179,10 @@ confirmDeleteBtn.addEventListener("click", async () => {
     querySnapshot.forEach(async (docItem) => {
       await deleteDoc(doc(db, "tasks", docItem.id));
     });
-    document.getElementById("Tasks").innerHTML = "";
+    await loadTasks();
   } else if (taskToDelete?.id) {
     await deleteDoc(doc(db, "tasks", taskToDelete.id));
-    taskToDelete.elem.remove();
+    await loadTasks();
   }
 
   taskToDelete = null;
