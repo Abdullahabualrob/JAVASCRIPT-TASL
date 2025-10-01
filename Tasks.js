@@ -1,11 +1,32 @@
-///////////////////////////// page load /////////////////////////////////////
-let SavedTasks = JSON.parse(localStorage.getItem("Tasks")) || [];
+// ========================= Firebase Initialization =========================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } 
+from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-document.addEventListener("DOMContentLoaded", () => {
-  let Tasks = document.getElementById("Tasks");
-  SavedTasks.forEach((task) => {
-    Tasks.innerHTML += `
-    <div class="Task ${task.done ? "Done" : ""}">
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBnOw9Z4NE1k9AgU6GVlhR7-v3hevE5NO0",
+  authDomain: "mytodoapp-c330a.firebaseapp.com",
+  projectId: "mytodoapp-c330a",
+  storageBucket: "mytodoapp-c330a.firebasestorage.app",
+  messagingSenderId: "274283322203",
+  appId: "1:274283322203:web:3f44acb0c26e4c3c8e587e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ========================= Load Tasks =========================
+async function loadTasks() {
+  const tasksContainer = document.getElementById("Tasks");
+  tasksContainer.innerHTML = "";
+
+  const querySnapshot = await getDocs(collection(db, "tasks"));
+  querySnapshot.forEach((docItem) => {
+    const task = docItem.data();
+    tasksContainer.innerHTML += `
+      <div class="Task ${task.done ? "Done" : ""}" data-id="${docItem.id}">
         <p>${task.name}</p>
         <div class="Operations">
           <input type="checkbox" ${task.done ? "checked" : ""}>
@@ -15,34 +36,15 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
   });
-});
+}
 
-document.getElementById("newToDo").addEventListener("input", () => {
-  const taskName = document.getElementById("newToDo").value.trim();
-  let taskValidation = document.getElementById("taskValidation");
-  taskValidation.textContent = "";
-  taskValidation.style.display = "none";
-  if (taskName === "") {
-    taskValidation.textContent = "Task name cannot be empty";
-    taskValidation.style.display = "block";
-    return;
-  } else if (/^\d/.test(taskName)) {
-    taskValidation.textContent = "Task name cannot start with a number";
-    taskValidation.style.display = "block";
-    return;
-  } else if (taskName.length < 5) {
-    taskValidation.textContent = "Task name cannot be less than 5 characters";
-    taskValidation.style.display = "block";
-    return;
-  } else {
-    taskValidation.style.display = "none";
-  }
-});
-///////////////////////////// add task /////////////////////////////////////
-document.getElementById("addTaskBtn").addEventListener("click", () => {
+document.addEventListener("DOMContentLoaded", loadTasks);
+
+// ========================= Add Task =========================
+document.getElementById("addTaskBtn").addEventListener("click", async () => {
   const input = document.getElementById("newToDo");
   const taskName = input.value.trim();
-  let taskValidation = document.getElementById("taskValidation");
+  const taskValidation = document.getElementById("taskValidation");
 
   taskValidation.textContent = "";
   taskValidation.style.display = "none";
@@ -61,101 +63,59 @@ document.getElementById("addTaskBtn").addEventListener("click", () => {
     return;
   }
 
-  let tasks = document.getElementById("Tasks");
-  SavedTasks.push({ name: taskName, done: false });
-  localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
-  tasks.innerHTML += `
-    <div class="Task">
-        <p>${taskName}</p>
-        <div class="Operations">
-          <input type="checkbox">
-          <button><i class="fa fa-pencil" aria-hidden="true"></i></button>
-          <button><i class="fa fa-trash" aria-hidden="true"></i></button>
-        </div>
-      </div>
-    `;
+  const docRef = await addDoc(collection(db, "tasks"), { name: taskName, done: false });
+  console.log("Task added with ID:", docRef.id);
   input.value = "";
+  await loadTasks();
 });
 
-///////////////////////////// checkbox event /////////////////////////////////////
-document.getElementById("Tasks").addEventListener("change", (event) => {
+// ========================= Checkbox Event =========================
+document.getElementById("Tasks").addEventListener("change", async (event) => {
   if (event.target.type === "checkbox") {
     const check = event.target;
     const taskDiv = check.closest(".Task");
+    const taskId = taskDiv.getAttribute("data-id");
+
+    // تحديث Firestore
+    await updateDoc(doc(db, "tasks", taskId), { done: check.checked });
+
+    // تعديل الـ UI
     if (check.checked) {
       taskDiv.classList.add("Done");
     } else {
       taskDiv.classList.remove("Done");
     }
-    SavedTasks = SavedTasks.map((task) =>
-      task.name === taskDiv.querySelector("p").textContent
-        ? { ...task, done: check.checked }
-        : task
-    );
-    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
 });
 
-///////////////////////////// Filtring /////////////////////////////////////
-//All
-document.getElementById("allTasks").addEventListener("click", () => {
-  const tasks = document.querySelectorAll(".Task");
-  tasks.forEach((task) => (task.style.display = "flex"));
-});
-//Done
-document.getElementById("doneTasks").addEventListener("click", () => {
-  const tasks = document.querySelectorAll(".Task");
-  tasks.forEach((task) => {
-    task.style.display = task.classList.contains("Done") ? "flex" : "none";
-  });
-});
-//Todo
-document.getElementById("todoTasks").addEventListener("click", () => {
-  const tasks = document.querySelectorAll(".Task");
-  tasks.forEach((task) => {
-    task.style.display = task.classList.contains("Done") ? "none" : "flex";
-  });
-});
-
-///////////////////////////// Popups /////////////////////////////////////
-
+// ========================= Edit Task =========================
 const editPopup = document.getElementById("editPopup");
 const editInput = document.getElementById("editInput");
 const saveEditBtn = document.getElementById("saveEdit");
 const cancelEditBtn = document.getElementById("cancelEdit");
 
-const confirmPopup = document.getElementById("confirmPopup");
-const confirmMessage = document.getElementById("confirmMessage");
-const confirmDeleteBtn = document.getElementById("confirmDelete");
-const cancelDeleteBtn = document.getElementById("cancelDelete");
-
 let taskToEdit = null;
-let taskToDelete = null;
 
-///////////////////////////// Edit popup /////////////////////////////////////
 document.getElementById("Tasks").addEventListener("click", (event) => {
-  const editBtn = event.target.closest("button")?.querySelector("i.fa-pencil");
-  if (editBtn) {
+  if (event.target.closest("i.fa-pencil")) {
     const taskDiv = event.target.closest(".Task");
+    const taskId = taskDiv.getAttribute("data-id");
     const taskNameElem = taskDiv.querySelector("p");
-    taskToEdit = { elem: taskNameElem, oldName: taskNameElem.textContent };
 
-    editInput.value = taskToEdit.oldName;
+    taskToEdit = { elem: taskNameElem, id: taskId };
+    editInput.value = taskNameElem.textContent;
     editPopup.style.display = "flex";
   }
 });
 
-saveEditBtn.addEventListener("click", () => {
+saveEditBtn.addEventListener("click", async () => {
   const newName = editInput.value.trim();
-  if (newName !== "") {
+  if (newName !== "" && taskToEdit) {
+    await updateDoc(doc(db, "tasks", taskToEdit.id), { name: newName });
     taskToEdit.elem.textContent = newName;
-    SavedTasks = SavedTasks.map((task) =>
-      task.name === taskToEdit.oldName ? { ...task, name: newName } : task
-    );
-
-    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
   editPopup.style.display = "none";
+  taskToEdit = null;
 });
 
 cancelEditBtn.addEventListener("click", () => {
@@ -163,26 +123,28 @@ cancelEditBtn.addEventListener("click", () => {
   taskToEdit = null;
 });
 
-///////////////////////////// Delete popup /////////////////////////////////////
+// ========================= Delete Task =========================
+const confirmPopup = document.getElementById("confirmPopup");
+const confirmMessage = document.getElementById("confirmMessage");
+const confirmDeleteBtn = document.getElementById("confirmDelete");
+const cancelDeleteBtn = document.getElementById("cancelDelete");
+
+let taskToDelete = null;
 
 document.getElementById("Tasks").addEventListener("click", (event) => {
-  if (
-    event.target.closest("button") &&
-    event.target.closest("button").querySelector("i.fa-trash")
-  ) {
+  if (event.target.closest("i.fa-trash")) {
     const taskDiv = event.target.closest(".Task");
-    const taskName = taskDiv.querySelector("p").textContent;
-    taskToDelete = { elem: taskDiv, name: taskName };
+    const taskId = taskDiv.getAttribute("data-id");
+    taskToDelete = { elem: taskDiv, id: taskId };
 
-    confirmMessage.textContent = `Are you sure you want to delete "${taskName}"?`;
+    confirmMessage.textContent = "Are you sure you want to delete this task?";
     confirmPopup.style.display = "flex";
   }
 });
 
 document.getElementById("deleteDone").addEventListener("click", () => {
   taskToDelete = "done";
-  confirmMessage.textContent =
-    "Are you sure you want to delete all DONE tasks?";
+  confirmMessage.textContent = "Are you sure you want to delete all DONE tasks?";
   confirmPopup.style.display = "flex";
 });
 
@@ -192,27 +154,23 @@ document.getElementById("deleteAll").addEventListener("click", () => {
   confirmPopup.style.display = "flex";
 });
 
-confirmDeleteBtn.addEventListener("click", () => {
+confirmDeleteBtn.addEventListener("click", async () => {
   if (taskToDelete === "done") {
-    const tasks = document.querySelectorAll(".Task");
-    tasks.forEach((taskElem) => {
-      const checkbox = taskElem.querySelector('input[type="checkbox"]');
-      if (checkbox && checkbox.checked) {
-        const name = taskElem.querySelector("p").textContent;
-        const idx = SavedTasks.findIndex((t) => t.name === name);
-        if (idx > -1) SavedTasks.splice(idx, 1);
-        taskElem.remove();
-      }
+    const q = query(collection(db, "tasks"), where("done", "==", true));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach(async (docItem) => {
+      await deleteDoc(doc(db, "tasks", docItem.id));
     });
-    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
+    await loadTasks();
   } else if (taskToDelete === "all") {
-    SavedTasks = [];
-    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
+    const querySnapshot = await getDocs(collection(db, "tasks"));
+    querySnapshot.forEach(async (docItem) => {
+      await deleteDoc(doc(db, "tasks", docItem.id));
+    });
     document.getElementById("Tasks").innerHTML = "";
-  } else if (taskToDelete && typeof taskToDelete === "object") {
+  } else if (taskToDelete?.id) {
+    await deleteDoc(doc(db, "tasks", taskToDelete.id));
     taskToDelete.elem.remove();
-    SavedTasks = SavedTasks.filter((task) => task.name !== taskToDelete.name);
-    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
 
   taskToDelete = null;
@@ -220,6 +178,23 @@ confirmDeleteBtn.addEventListener("click", () => {
 });
 
 cancelDeleteBtn.addEventListener("click", () => {
-  confirmPopup.style.display = "none";
   taskToDelete = null;
+  confirmPopup.style.display = "none";
+});
+
+// ========================= Filtering =========================
+document.getElementById("allTasks").addEventListener("click", () => {
+  document.querySelectorAll(".Task").forEach((t) => (t.style.display = "flex"));
+});
+
+document.getElementById("doneTasks").addEventListener("click", () => {
+  document.querySelectorAll(".Task").forEach((t) => {
+    t.style.display = t.classList.contains("Done") ? "flex" : "none";
+  });
+});
+
+document.getElementById("todoTasks").addEventListener("click", () => {
+  document.querySelectorAll(".Task").forEach((t) => {
+    t.style.display = t.classList.contains("Done") ? "none" : "flex";
+  });
 });
