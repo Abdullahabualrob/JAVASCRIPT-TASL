@@ -172,10 +172,6 @@ color: white;
   transition: 0.3s ease-in-out;
 }
 
-.no-tasks-message:hover {
-  background: #f1f1f1;
-  border-color: #999;
-}
 
 .no-tasks-message i {
   font-size: 24px;
