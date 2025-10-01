@@ -40,8 +40,8 @@ async function loadTasks() {
 
 document.addEventListener("DOMContentLoaded", loadTasks);
 
-// ========================= Add Task =========================
-document.getElementById("addTaskBtn").addEventListener("click", async () => {
+///////////////////////////// add task /////////////////////////////////////
+document.getElementById("addTaskBtn").addEventListener("click", () => {
   const input = document.getElementById("newToDo");
   const taskName = input.value.trim();
   const taskValidation = document.getElementById("taskValidation");
@@ -74,16 +74,44 @@ document.getElementById("Tasks").addEventListener("change", async (event) => {
   if (event.target.type === "checkbox") {
     const check = event.target;
     const taskDiv = check.closest(".Task");
-    const taskId = taskDiv.getAttribute("data-id");
-
-    if (check.checked) taskDiv.classList.add("Done");
-    else taskDiv.classList.remove("Done");
-
-    await updateDoc(doc(db, "tasks", taskId), { done: check.checked });
+    if (check.checked) {
+      taskDiv.classList.add("Done");
+    } else {
+      taskDiv.classList.remove("Done");
+    }
+    SavedTasks = SavedTasks.map((task) =>
+      task.name === taskDiv.querySelector("p").textContent
+        ? { ...task, done: check.checked }
+        : task
+    );
+    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
 });
 
-// ========================= Popups =========================
+///////////////////////////// Filtring /////////////////////////////////////
+//All
+document.getElementById("allTasks").addEventListener("click", () => {
+  const tasks = document.querySelectorAll(".Task");
+  tasks.forEach((task) => (task.style.display = "flex"));
+});
+//Done
+document.getElementById("doneTasks").addEventListener("click", () => {
+  const tasks = document.querySelectorAll(".Task");
+  tasks.forEach((task) => {
+    task.style.display = task.classList.contains("Done") ? "flex" : "none";
+  });
+});
+//Todo
+document.getElementById("todoTasks").addEventListener("click", () => {
+  const tasks = document.querySelectorAll(".Task");
+  tasks.forEach((task) => {
+    task.style.display = task.classList.contains("Done") ? "none" : "flex";
+  });
+});
+
+///////////////////////////// Popups /////////////////////////////////////
+
+
 const editPopup = document.getElementById("editPopup");
 const editInput = document.getElementById("editInput");
 const saveEditBtn = document.getElementById("saveEdit");
@@ -114,7 +142,10 @@ saveEditBtn.addEventListener("click", async () => {
   const newName = editInput.value.trim();
   if (newName !== "") {
     taskToEdit.elem.textContent = newName;
-    await updateDoc(doc(db, "tasks", taskToEdit.id), { name: newName });
+   SavedTasks=SavedTasks.map((task)=>
+    task.name===taskToEdit.oldName? {...task,name: newName} :task);
+
+    localStorage.setItem("Tasks", JSON.stringify(SavedTasks));
   }
   editPopup.style.display = "none";
 });
@@ -136,10 +167,11 @@ document.getElementById("Tasks").addEventListener("click", (event) => {
   }
 });
 
-// ========================= Delete Done / Delete All =========================
+
 document.getElementById("deleteDone").addEventListener("click", () => {
   taskToDelete = "done";
-  confirmMessage.textContent = "Are you sure you want to delete all DONE tasks?";
+  confirmMessage.textContent =
+    "Are you sure you want to delete all DONE tasks?";
   confirmPopup.style.display = "flex";
 });
 
