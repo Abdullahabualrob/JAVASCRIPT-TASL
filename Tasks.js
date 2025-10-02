@@ -67,13 +67,13 @@ function updateDeleteDoneButton() {
     deleteDoneBtn.disabled = true;
     deleteDoneBtn.style.cursor = "not-allowed";
   } else {
-    deleteDoneBtn.style.backgroundColor = "red";
+    deleteDoneBtn.style.backgroundColor ="#E94343";
     deleteDoneBtn.disabled = false;
     deleteDoneBtn.style.cursor = "pointer";
   }
 }
 
-// ========================= Load Tasks Realtime =========================
+// ========================= Load Tasks =========================
 onSnapshot(collection(db, "tasks"), (snapshot) => {
   tasksContainer.innerHTML = "";
 
