@@ -1,7 +1,16 @@
 // ========================= Firebase Initialization =========================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where } 
-from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -10,7 +19,7 @@ const firebaseConfig = {
   projectId: "mytodoapp-c330a",
   storageBucket: "mytodoapp-c330a.firebasestorage.app",
   messagingSenderId: "274283322203",
-  appId: "1:274283322203:web:3f44acb0c26e4c3c8e587e"
+  appId: "1:274283322203:web:3f44acb0c26e4c3c8e587e",
 };
 
 // Initialize Firebase
@@ -25,17 +34,17 @@ async function loadTasks() {
   const querySnapshot = await getDocs(collection(db, "tasks"));
 
   if (querySnapshot.empty) {
-  tasksContainer.innerHTML = `
+    tasksContainer.innerHTML = `
     <div class="no-tasks-message">
       <i class="fa fa-tasks" aria-hidden="true"></i>
       <p>Please insert tasks</p>
     </div>
   `;
 
-  document.getElementById("deleteAll").style.display = "none";
-  document.getElementById("deleteDone").style.display = "none";
-  return;
-}
+    document.getElementById("deleteAll").style.display = "none";
+    document.getElementById("deleteDone").style.display = "none";
+    return;
+  }
   querySnapshot.forEach((docItem) => {
     const task = docItem.data();
     tasksContainer.innerHTML += `
@@ -56,32 +65,88 @@ async function loadTasks() {
 
 document.addEventListener("DOMContentLoaded", loadTasks);
 
-// ========================= Add Task =========================
-document.getElementById("addTaskBtn").addEventListener("click", async () => {
-  const input = document.getElementById("newToDo");
-  const taskName = input.value.trim();
-  const taskValidation = document.getElementById("taskValidation");
-
+// ========================= Validation on input =========================
+document.getElementById("newToDo").addEventListener("input", () => {
+  const taskName = document.getElementById("newToDo").value.trim();
+  let taskValidation = document.getElementById("taskValidation");
+  const addBtn = document.getElementById("addTaskBtn");
   taskValidation.textContent = "";
   taskValidation.style.display = "none";
-
+  const normalizedTaskName = taskName.toLowerCase();
+  const tasks = document.querySelectorAll("#Tasks .Task");
+  tasks.forEach((task) => {
+    const name = task.querySelector("p").textContent.trim().toLowerCase();
+    if (name.includes(normalizedTaskName)) {
+      task.style.display = "flex";
+    } else {
+      task.style.display = "none";
+    }
+  });
   if (taskName === "") {
     taskValidation.textContent = "Task name cannot be empty";
     taskValidation.style.display = "block";
+    addBtn.style.backgroundColor = "gray";
+    addBtn.disabled = true;
     return;
   } else if (/^\d/.test(taskName)) {
     taskValidation.textContent = "Task name cannot start with a number";
     taskValidation.style.display = "block";
+    addBtn.style.backgroundColor = "gray";
+    addBtn.disabled = true;
     return;
   } else if (taskName.length < 5) {
     taskValidation.textContent = "Task name cannot be less than 5 characters";
     taskValidation.style.display = "block";
+    addBtn.style.backgroundColor = "gray";
+    addBtn.disabled = true;
     return;
+  } else {
+    taskValidation.style.display = "none";
+    addBtn.style.backgroundColor = "rgb(0, 140, 186)";
+    addBtn.disabled = false;
   }
-  const docRef = await addDoc(collection(db, "tasks"), { name: taskName, done: false });
-  console.log("Task added with ID:", docRef.id);
-  input.value = "";
-  await loadTasks();
+});
+
+// ========================= Add Task =========================
+document.getElementById("addTaskBtn").addEventListener("click", async () => {
+  const input = document.getElementById("newToDo");
+  const addBtn = document.getElementById("addTaskBtn");
+  const taskName = input.value.trim();
+  const taskValidation = document.getElementById("taskValidation");
+  const tasks = document.querySelectorAll("#Tasks .Task");
+
+  console.log(tasks);
+  let isDublicated = false;
+  tasks.forEach((task) => {
+    const name = task.querySelector("p").textContent.trim().toLocaleLowerCase();
+
+    if (name === taskName.toLocaleLowerCase()) {
+      Swal.fire("This task is already added");
+      isDublicated = true;
+    }
+  });
+  if (isDublicated == false) {
+    taskValidation.textContent = "";
+    taskValidation.style.display = "none";
+    const docRef = await addDoc(collection(db, "tasks"), {
+      name: taskName,
+      done: false,
+    });
+    console.log("Task added with ID:", docRef.id);
+    input.value = "";
+    await loadTasks();
+    Swal.fire({
+      toast: true,
+      position: "bottom",
+      icon: "success",
+      title: "Task added succussfully ✅",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+    });
+    addBtn.style.backgroundColor = "gray";
+    addBtn.disabled = true;
+  }
 });
 
 // ========================= Checkbox Event =========================
@@ -156,7 +221,8 @@ document.getElementById("Tasks").addEventListener("click", (event) => {
 
 document.getElementById("deleteDone").addEventListener("click", () => {
   taskToDelete = "done";
-  confirmMessage.textContent = "Are you sure you want to delete all DONE tasks?";
+  confirmMessage.textContent =
+    "Are you sure you want to delete all DONE tasks?";
   confirmPopup.style.display = "flex";
 });
 
