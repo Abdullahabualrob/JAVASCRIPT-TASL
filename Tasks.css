@@ -117,50 +117,6 @@ color: #ffff44;
 }
 
 
-.popup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: none; 
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-.popup {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
-  max-width: 90%;
-  text-align: center;
-  box-shadow: 0px 5px 15px rgba(0,0,0,0.3);
-}
-.popup h3 {
-  margin-bottom: 15px;
-}
-.popup .popup-buttons {
-  display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
-}
-.popup .popup-buttons button {
-  flex: 1;
-  margin: 0 5px;
-  padding: 8px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  color: white;
-}
-.popup .popup-buttons .confirm {
-  background-color: #28a745;
-}
-.popup .popup-buttons .cancel {
-  background-color: #dc3545;
-}
 .no-tasks-message {
   text-align: center;
   padding: 20px;

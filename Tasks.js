@@ -34,14 +34,6 @@ const deleteAllBtn = document.getElementById("deleteAll");
 const addBtn = document.getElementById("addTaskBtn");
 const newToDoInput = document.getElementById("newToDo");
 const taskValidation = document.getElementById("taskValidation");
-const editPopup = document.getElementById("editPopup");
-const editInput = document.getElementById("editInput");
-const saveEditBtn = document.getElementById("saveEdit");
-const cancelEditBtn = document.getElementById("cancelEdit");
-const confirmPopup = document.getElementById("confirmPopup");
-const confirmMessage = document.getElementById("confirmMessage");
-const confirmDeleteBtn = document.getElementById("confirmDelete");
-const cancelDeleteBtn = document.getElementById("cancelDelete");
 
 // ========================= Utility Functions =========================
 function createTaskElement(docItem) {
@@ -67,7 +59,7 @@ function updateDeleteDoneButton() {
     deleteDoneBtn.disabled = true;
     deleteDoneBtn.style.cursor = "not-allowed";
   } else {
-    deleteDoneBtn.style.backgroundColor ="#E94343";
+    deleteDoneBtn.style.backgroundColor = "#E94343";
     deleteDoneBtn.disabled = false;
     deleteDoneBtn.style.cursor = "pointer";
   }
@@ -97,7 +89,6 @@ onSnapshot(collection(db, "tasks"), (snapshot) => {
   deleteDoneBtn.style.display = "inline-block";
   updateDeleteDoneButton();
 });
-
 
 // ========================= Validation on input =========================
 document.getElementById("newToDo").addEventListener("input", () => {
@@ -161,11 +152,8 @@ addBtn.addEventListener("click", async () => {
   Swal.fire({ toast: true, position: "bottom", icon: "success", title: "Task added successfully ✅", showConfirmButton: false, timer: 3000 });
 });
 
-// ========================= Task Container Event =========================
-let taskToEdit = null;
-let taskToDelete = null;
-
-tasksContainer.addEventListener("click", (event) => {
+// ========================= Task Container Events =========================
+tasksContainer.addEventListener("click", async (event) => {
   const taskDiv = event.target.closest(".Task");
   if (!taskDiv) return;
   const taskId = taskDiv.dataset.id;
@@ -173,20 +161,47 @@ tasksContainer.addEventListener("click", (event) => {
   // Edit
   if (event.target.closest("i.fa-pencil")) {
     const taskNameElem = taskDiv.querySelector("p");
-    taskToEdit = { elem: taskNameElem, id: taskId };
-    editInput.value = taskNameElem.textContent;
-    editPopup.style.display = "flex";
-    event.stopPropagation();
+
+    const { value: newName } = await Swal.fire({
+      title: "✏️ Edit Task",
+      input: "text",
+      inputValue: taskNameElem.textContent,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "rgb(0, 140, 186)",
+      cancelButtonColor: "gray",
+      inputValidator: (value) => {
+        if (!value.trim()) return "Task name cannot be empty";
+        if (/^\d/.test(value.trim())) return "Task name cannot start with a number";
+        if (value.trim().length < 5) return "Task name must be at least 5 characters";
+      },
+    });
+
+    if (newName) {
+      await updateDoc(doc(db, "tasks", taskId), { name: newName.trim() });
+      Swal.fire({ icon: "success", title: "Task updated ✅", timer: 2000, showConfirmButton: false });
+    }
     return;
   }
 
   // Delete
   if (event.target.closest("i.fa-trash")) {
-    taskToDelete = { elem: taskDiv, id: taskId };
-    confirmMessage.textContent = "Are you sure you want to delete this task?";
-    confirmPopup.style.display = "flex";
-    event.stopPropagation();
-    return;
+    const confirm = await Swal.fire({
+      title: "🗑️ Delete Task",
+      text: "Are you sure you want to delete this task?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#E94343",
+      cancelButtonColor: "gray",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (confirm.isConfirmed) {
+      await deleteDoc(doc(db, "tasks", taskId));
+      Swal.fire({ icon: "success", title: "Task deleted 🗑️", timer: 2000, showConfirmButton: false });
+    }
   }
 });
 
@@ -201,54 +216,42 @@ tasksContainer.addEventListener("change", async (event) => {
   }
 });
 
-// ========================= Edit Popup Buttons =========================
-saveEditBtn.addEventListener("click", async (event) => {
-  event.stopPropagation();
-  if (taskToEdit && editInput.value.trim() !== "") {
-    await updateDoc(doc(db, "tasks", taskToEdit.id), { name: editInput.value.trim() });
-  }
-  taskToEdit = null;
-  editPopup.style.display = "none";
-});
+// ========================= Delete Done Tasks =========================
+deleteDoneBtn.addEventListener("click", async () => {
+  const confirm = await Swal.fire({
+    title: "🗑️ Delete All DONE Tasks",
+    text: "Are you sure you want to delete all completed tasks?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#E94343",
+    cancelButtonColor: "gray",
+    confirmButtonText: "Yes, delete them!",
+  });
 
-cancelEditBtn.addEventListener("click", (event) => {
-  event.stopPropagation();
-  taskToEdit = null;
-  editPopup.style.display = "none";
-});
-
-// ========================= Delete Confirm Buttons =========================
-deleteDoneBtn.addEventListener("click", () => {
-  taskToDelete = "done";
-  confirmMessage.textContent = "Are you sure you want to delete all DONE tasks?";
-  confirmPopup.style.display = "flex";
-});
-
-deleteAllBtn.addEventListener("click", () => {
-  taskToDelete = "all";
-  confirmMessage.textContent = "Are you sure you want to delete ALL tasks?";
-  confirmPopup.style.display = "flex";
-});
-
-confirmDeleteBtn.addEventListener("click", async (event) => {
-  event.stopPropagation();
-  if (taskToDelete === "done") {
+  if (confirm.isConfirmed) {
     const doneTasks = document.querySelectorAll(".Task.Done");
     for (let t of doneTasks) await deleteDoc(doc(db, "tasks", t.dataset.id));
-  } else if (taskToDelete === "all") {
-    const allTasks = document.querySelectorAll(".Task");
-    for (let t of allTasks) await deleteDoc(doc(db, "tasks", t.dataset.id));
-  } else if (taskToDelete?.id) {
-    await deleteDoc(doc(db, "tasks", taskToDelete.id));
+    Swal.fire({ icon: "success", title: "All done tasks deleted ✅", timer: 2000, showConfirmButton: false });
   }
-  taskToDelete = null;
-  confirmPopup.style.display = "none";
 });
 
-cancelDeleteBtn.addEventListener("click", (event) => {
-  event.stopPropagation();
-  taskToDelete = null;
-  confirmPopup.style.display = "none";
+// ========================= Delete All Tasks =========================
+deleteAllBtn.addEventListener("click", async () => {
+  const confirm = await Swal.fire({
+    title: "🗑️ Delete ALL Tasks",
+    text: "This will delete ALL tasks, are you sure?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#E94343",
+    cancelButtonColor: "gray",
+    confirmButtonText: "Yes, delete everything!",
+  });
+
+  if (confirm.isConfirmed) {
+    const allTasks = document.querySelectorAll(".Task");
+    for (let t of allTasks) await deleteDoc(doc(db, "tasks", t.dataset.id));
+    Swal.fire({ icon: "success", title: "All tasks deleted 🗑️", timer: 2000, showConfirmButton: false });
+  }
 });
 
 // ========================= Filtering =========================
