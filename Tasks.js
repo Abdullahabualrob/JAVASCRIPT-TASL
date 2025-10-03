@@ -98,21 +98,45 @@ onSnapshot(collection(db, "tasks"), (snapshot) => {
   updateDeleteDoneButton();
 });
 
+
 // ========================= Validation on input =========================
-newToDoInput.addEventListener("input", () => {
-  const taskName = newToDoInput.value.trim();
-  taskValidation.style.display = "none";
+document.getElementById("newToDo").addEventListener("input", () => {
+  const taskName = document.getElementById("newToDo").value.trim();
+  let taskValidation = document.getElementById("taskValidation");
+  const addBtn = document.getElementById("addTaskBtn");
   taskValidation.textContent = "";
+  taskValidation.style.display = "none";
 
-  if (taskName === "") taskValidation.textContent = "Task name cannot be empty";
-  else if (/^\d/.test(taskName)) taskValidation.textContent = "Task name cannot start with a number";
-  else if (taskName.length < 5) taskValidation.textContent = "Task name cannot be less than 5 characters";
-
-  if (taskValidation.textContent !== "") {
+  const normalizedTaskName = taskName.toLowerCase();
+  const tasks = document.querySelectorAll("#Tasks .Task");
+  tasks.forEach((task) => {
+    const name = task.querySelector("p").textContent.trim().toLowerCase();
+    if (name.includes(normalizedTaskName)) {
+      task.style.display = "flex";
+    } else {
+      task.style.display = "none";
+    }
+  });
+  if (taskName === "") {
+    taskValidation.textContent = "Task name cannot be empty";
     taskValidation.style.display = "block";
     addBtn.style.backgroundColor = "gray";
     addBtn.disabled = true;
+    return;
+  } else if (/^\d/.test(taskName)) {
+    taskValidation.textContent = "Task name cannot start with a number";
+    taskValidation.style.display = "block";
+    addBtn.style.backgroundColor = "gray";
+    addBtn.disabled = true;
+    return;
+  } else if (taskName.length < 5) {
+    taskValidation.textContent = "Task name cannot be less than 5 characters";
+    taskValidation.style.display = "block";
+    addBtn.style.backgroundColor = "gray";
+    addBtn.disabled = true;
+    return;
   } else {
+    taskValidation.style.display = "none";
     addBtn.style.backgroundColor = "rgb(0, 140, 186)";
     addBtn.disabled = false;
   }
