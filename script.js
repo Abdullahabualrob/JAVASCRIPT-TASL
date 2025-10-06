@@ -36,7 +36,7 @@ const newToDoInput = document.getElementById("newToDo");
 const taskValidation = document.getElementById("taskValidation");
 
 // ========================= Utility Functions =========================
-const createTaskElement=(docItem) =>{
+const createTaskElement=(docItem)=>{
     const task = docItem.data();
     const div = document.createElement("div");
     div.className = `Task ${task.done ? "Done" : ""}`;
@@ -277,3 +277,10 @@ document.getElementById("doneTasks").addEventListener("click", () => {
 document.getElementById("todoTasks").addEventListener("click", () => {
     document.querySelectorAll(".Task").forEach(t => t.style.display = !t.classList.contains("Done") ? "flex" : "none");
 });
+
+
+
+
+
+
+
