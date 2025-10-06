@@ -36,7 +36,7 @@ const newToDoInput = document.getElementById("newToDo");
 const taskValidation = document.getElementById("taskValidation");
 
 // ========================= Utility Functions =========================
-function createTaskElement(docItem) {
+const createTaskElement=(docItem) =>{
     const task = docItem.data();
     const div = document.createElement("div");
     div.className = `Task ${task.done ? "Done" : ""}`;
@@ -52,7 +52,7 @@ function createTaskElement(docItem) {
     return div;
 }
 
-function updateDeleteDoneButton() {
+const updateDeleteDoneButton=()=> {
     const doneTasks = document.querySelectorAll(".Task.Done");
     if (doneTasks.length === 0) {
         deleteDoneBtn.style.backgroundColor = "gray";
