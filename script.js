@@ -13,6 +13,17 @@ import {
     onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
+
+const showSkeletonLoader = () => {
+  tasksContainer.innerHTML = "";
+  for (let i = 0; i < 4; i++) {
+    const skeleton = document.createElement("div");
+    skeleton.className = "skeleton";
+    tasksContainer.appendChild(skeleton);
+  }
+};
+
+
 // Firebase config
 const firebaseConfig = {
     apiKey: "AIzaSyBnOw9Z4NE1k9AgU6GVlhR7-v3hevE5NO0",
@@ -66,26 +77,35 @@ const updateDeleteDoneButton=()=> {
 }
 
 // ========================= Load Tasks =========================
+
+
+showSkeletonLoader(); 
+
 onSnapshot(collection(db, "tasks"), (snapshot) => {
-    tasksContainer.innerHTML = "";
-    if (snapshot.empty) {
-        tasksContainer.innerHTML = `
-            <div class="no-tasks-message">
-                <i class="fa fa-tasks"></i>
-                <p>Please insert tasks</p>
-            </div>
-        `;
-        deleteAllBtn.style.display = "none";
-        deleteDoneBtn.style.display = "none";
-        return;
-    }
-    snapshot.forEach((docItem) => {
-        tasksContainer.appendChild(createTaskElement(docItem));
-    });
-    deleteAllBtn.style.display = "inline-block";
-    deleteDoneBtn.style.display = "inline-block";
-    updateDeleteDoneButton();
+    setTimeout(() => {
+        tasksContainer.innerHTML = "";
+        if (snapshot.empty) {
+            tasksContainer.innerHTML = `
+                <div class="no-tasks-message">
+                    <i class="fa fa-tasks"></i>
+                    <p>Please insert tasks</p>
+                </div>
+            `;
+            deleteAllBtn.style.display = "none";
+            deleteDoneBtn.style.display = "none";
+            return;
+        }
+
+        snapshot.forEach((docItem) => {
+            tasksContainer.appendChild(createTaskElement(docItem));
+        });
+
+        deleteAllBtn.style.display = "inline-block";
+        deleteDoneBtn.style.display = "inline-block";
+        updateDeleteDoneButton();
+    }, 600);
 });
+
 
 // ========================= Validation on input =========================
 document.getElementById("newToDo").addEventListener("input", () => {
